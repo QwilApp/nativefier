@@ -12,6 +12,7 @@ const log = require('loglevel');
  */
 function selectAppArgs(options) {
   return {
+    qwilApiUrl: options.qwilApiUrl,
     name: options.name,
     targetUrl: options.targetUrl,
     counter: options.counter,

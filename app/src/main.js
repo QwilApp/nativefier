@@ -147,19 +147,21 @@ if (shouldQuit) {
   });
 
   app.on('ready', () => {
-    mainWindow = createMainWindow(appArgs, app.quit, setDockBadge);
-    createTrayIcon(appArgs, mainWindow);
+    createMainWindow(appArgs, app.quit, setDockBadge, (window) => {
+      mainWindow = window;
+      createTrayIcon(appArgs, mainWindow);
 
-    // Register global shortcuts
-    if (appArgs.globalShortcuts) {
-      appArgs.globalShortcuts.forEach((shortcut) => {
-        globalShortcut.register(shortcut.key, () => {
-          shortcut.inputEvents.forEach((inputEvent) => {
-            mainWindow.webContents.sendInputEvent(inputEvent);
+      // Register global shortcuts
+      if (appArgs.globalShortcuts) {
+        appArgs.globalShortcuts.forEach((shortcut) => {
+          globalShortcut.register(shortcut.key, () => {
+            shortcut.inputEvents.forEach((inputEvent) => {
+              mainWindow.webContents.sendInputEvent(inputEvent);
+            });
           });
         });
-      });
-    }
+      }
+    });
   });
 }
 
