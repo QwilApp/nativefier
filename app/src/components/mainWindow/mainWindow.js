@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import ejs from 'ejs';
 import fetch from 'node-fetch';
 import { camelizeKeys } from 'humps';
 import { BrowserWindow, shell, ipcMain, dialog } from 'electron';
