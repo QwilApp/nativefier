@@ -203,24 +203,6 @@ function createMenu({
         },
       ],
     },
-    {
-      label: '&Help',
-      role: 'help',
-      submenu: [
-        {
-          label: `Built with Nativefier v${nativefierVersion}`,
-          click: () => {
-            shell.openExternal('https://github.com/jiahaog/nativefier');
-          },
-        },
-        {
-          label: 'Report an Issue',
-          click: () => {
-            shell.openExternal('https://github.com/jiahaog/nativefier/issues');
-          },
-        },
-      ],
-    },
   ];
 
   if (disableDevTools) {

@@ -78,6 +78,10 @@ if (require.main === module) {
       'The release version of the application.  Maps to the `ProductVersion` metadata property on Windows, and `CFBundleShortVersionString` on OS X.',
     )
     .option(
+      '--qwil-api-url <value>',
+      "Is used to fetch store URL's and application versions",
+    )
+    .option(
       '--build-version <value>',
       'The build version of the application. Maps to the `FileVersion` metadata property on Windows, and `CFBundleVersion` on OS X.',
     )

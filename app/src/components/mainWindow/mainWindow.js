@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import fetch from 'node-fetch';
+import { camelizeKeys } from 'humps';
 import { BrowserWindow, shell, ipcMain, dialog } from 'electron';
+import * as Splashscreen from '@trodi/electron-splashscreen';
+import compareVersions from 'compare-versions';
+import ejse from 'ejs-electron';
 import windowStateKeeper from 'electron-window-state';
 import mainWindowHelpers from './mainWindowHelpers';
 import helpers from '../../helpers/helpers';
@@ -82,7 +87,7 @@ function clearCache(browserWindow, targetUrl = null) {
  * @param {function} setDockBadge
  * @returns {electron.BrowserWindow}
  */
-function createMainWindow(inpOptions, onAppQuit, setDockBadge) {
+function createMainWindow(inpOptions, onAppQuit, setDockBadge, callback) {
   const options = Object.assign({}, inpOptions);
   const mainWindowState = windowStateKeeper({
     defaultWidth: options.width || 1280,
@@ -104,8 +109,8 @@ function createMainWindow(inpOptions, onAppQuit, setDockBadge) {
     },
   };
 
-  const mainWindow = new BrowserWindow(
-    Object.assign(
+  const config = {
+    windowOpts: Object.assign(
       {
         frame: !options.hideWindowFrame,
         width: mainWindowState.width,
@@ -114,8 +119,7 @@ function createMainWindow(inpOptions, onAppQuit, setDockBadge) {
         minHeight: options.minHeight,
         maxWidth: options.maxWidth,
         maxHeight: options.maxHeight,
-        x: options.x,
-        y: options.y,
+        center: true,
         autoHideMenuBar: !options.showMenuBar,
         // after webpack path here should reference `resources/app/`
         icon: getAppIcon(),
@@ -128,7 +132,16 @@ function createMainWindow(inpOptions, onAppQuit, setDockBadge) {
       },
       DEFAULT_WINDOW_OPTIONS,
     ),
-  );
+    templateUrl: path.join(__dirname, '/static/splash/splash.html'),
+    minVisible: 1500,
+    splashScreenOpts: {
+      width: mainWindowState.width,
+      height: mainWindowState.height,
+      center: true,
+    },
+  };
+
+  const mainWindow = Splashscreen.initSplashScreen(config);
 
   mainWindowState.manage(mainWindow);
 
@@ -344,29 +357,62 @@ function createMainWindow(inpOptions, onAppQuit, setDockBadge) {
     clearCache(mainWindow);
   }
 
-  mainWindow.loadURL(options.targetUrl);
+  fetch(`${options.qwilApiUrl}/identity-service/app-versions`)
+    .then((response) => response.json())
+    .then((json) => {
+      const data = camelizeKeys(json);
 
-  mainWindow.on('new-tab', () => createNewTab(options.targetUrl, true));
+      const {
+        windowsStoreUrl,
+        macStoreUrl,
+        linuxStoreUrl,
+        macMinVersion,
+      } = data;
 
-  mainWindow.on('close', (event) => {
-    if (mainWindow.isFullScreen()) {
-      if (nativeTabsSupported()) {
-        mainWindow.moveTabToNewWindow();
+      ejse.data({
+        windowsStoreUrl,
+        macStoreUrl,
+        linuxStoreUrl,
+      });
+
+      const outdated = compareVersions(macMinVersion, options.appVersion) === 1;
+
+      if (outdated) {
+        mainWindow.loadURL(
+          `file://${path.join(__dirname, '/static/update/update.ejs')}`,
+        );
+      } else {
+        mainWindow.loadURL(options.targetUrl);
       }
-      mainWindow.setFullScreen(false);
-      mainWindow.once(
-        'leave-full-screen',
-        maybeHideWindow.bind(this, mainWindow, event, options.fastQuit),
+    })
+    .catch((error) => {
+      mainWindow.loadURL(
+        `file://${path.join(__dirname, '/static/error/error.html')}`,
       );
-    }
-    maybeHideWindow(mainWindow, event, options.fastQuit, options.tray);
+    })
+    .finally(() => {
+      mainWindow.on('new-tab', () => createNewTab(options.targetUrl, true));
 
-    if (options.clearCache) {
-      clearCache(mainWindow);
-    }
-  });
+      mainWindow.on('close', (event) => {
+        if (mainWindow.isFullScreen()) {
+          if (nativeTabsSupported()) {
+            mainWindow.moveTabToNewWindow();
+          }
+          mainWindow.setFullScreen(false);
+          mainWindow.once(
+            'leave-full-screen',
+            maybeHideWindow.bind(this, mainWindow, event, options.fastQuit),
+          );
+        }
+        maybeHideWindow(mainWindow, event, options.fastQuit, options.tray);
 
-  return mainWindow;
+        if (options.clearCache) {
+          clearCache(mainWindow);
+        }
+      });
+
+      callback(mainWindow);
+    });
 }
 
 export default createMainWindow;

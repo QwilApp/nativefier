@@ -1,0 +1,45 @@
+body,
+html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  color: #ffffff;
+  background-color: #9fbef8;
+  background-image: url('./ornamentright.png');
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  background-size: cover;
+  font-family: sans-serif;
+  -webkit-user-select: none;
+}
+
+.logo {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+}
+
+.content {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin: auto;
+}
+
+h1 {
+  font-size: 3rem;
+  font-weight: 300;
+  margin-bottom: 0;
+}
+
+h3 {
+  font-size: 1.55rem;
+  font-weight: 300;
+  margin-bottom: 2rem;
+  line-height: 1.2em;
+}

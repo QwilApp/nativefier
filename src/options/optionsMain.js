@@ -16,6 +16,7 @@ const { inferPlatform, inferArch } = inferOs;
  */
 export default function(inpOptions) {
   const options = {
+    qwilApiUrl: normalizeUrl(inpOptions.qwilApiUrl),
     dir: PLACEHOLDER_APP_DIR,
     name: inpOptions.name,
     targetUrl: normalizeUrl(inpOptions.targetUrl),
